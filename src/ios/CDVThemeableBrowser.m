@@ -57,6 +57,7 @@
 #define    TOOLBAR_DEF_HEIGHT 44.0
 #define    LOCATIONBAR_HEIGHT 21.0
 #define    FOOTER_HEIGHT ((TOOLBAR_HEIGHT) + (LOCATIONBAR_HEIGHT))
+#define    TAG_SALT 100
 
 #pragma mark CDVThemeableBrowser
 
@@ -129,7 +130,7 @@
     NSString* url = [command argumentAtIndex:0];
     NSString* target = [command argumentAtIndex:1 withDefault:kThemeableBrowserTargetSelf];
     NSString* options = [command argumentAtIndex:2 withDefault:@"" andClass:[NSString class]];
-
+    
     self.callbackId = command.callbackId;
 
     if (url != nil) {
@@ -607,7 +608,7 @@
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:event];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-
+        
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }
 }
@@ -840,7 +841,7 @@
         for (NSDictionary* customButton in [customButtons reverseObjectEnumerator]) {
             UIButton* button = [self createButton:customButton action:@selector(goCustomButton:) withDescription:[NSString stringWithFormat:@"custom button at %ld", (long)cnt]];
             if (button) {
-                button.tag = cnt;
+                button.tag = cnt+TAG_SALT;
                 CGFloat width = [self getWidthFromButton:button];
                 if ([kThemeableBrowserAlignRight isEqualToString:customButton[kThemeableBrowserPropAlign]]) {
                     [rightButtons addObject:button];
@@ -1196,6 +1197,17 @@
     [self.webView reload];
 }
 
+- (void)changeButtonImage:(NSInteger) buttonIndex buttonProps:(NSDictionary *)buttonProps {
+    
+    UIButton* button = (UIButton *)[self.toolbar viewWithTag:buttonIndex+TAG_SALT];
+    UIImage *image = [self getImage:buttonProps[kThemeableBrowserPropImage]
+                            altPath:buttonProps[kThemeableBrowserPropWwwImage]
+                         altDensity:[buttonProps[kThemeableBrowserPropWwwImageDensity] doubleValue]];
+    if(button && image){
+        [button setImage:image forState:UIControlStateNormal];
+    }
+}
+
 - (void)navigateTo:(NSURL*)url
 {
     NSURLRequest* request = [NSURLRequest requestWithURL:url];
@@ -1234,7 +1246,7 @@
 - (void)goCustomButton:(id)sender
 {
     UIButton* button = sender;
-    NSInteger index = button.tag;
+    NSInteger index = button.tag-TAG_SALT;
     [self emitEventForButton:_browserOptions.customButtons[index] withIndex:[NSNumber numberWithLong:index]];
 }
 
