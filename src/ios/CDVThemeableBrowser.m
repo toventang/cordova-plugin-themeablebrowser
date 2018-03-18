@@ -861,7 +861,7 @@
 
     NSArray* customButtons = _browserOptions.customButtons;
     if (customButtons) {
-        NSInteger cnt = 0;
+        NSInteger cnt = [customButtons count]-1;
         // Reverse loop because we are laying out from outer to inner.
         for (NSDictionary* customButton in [customButtons reverseObjectEnumerator]) {
             UIButton* button = [self createButton:customButton action:@selector(goCustomButton:) withDescription:[NSString stringWithFormat:@"custom button at %ld", (long)cnt]];
@@ -877,7 +877,7 @@
                 }
             }
 
-            cnt += 1;
+            cnt -= 1;
         }
     }
 
